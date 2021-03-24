@@ -62,7 +62,7 @@ async function main(app: Application): Promise<Application> {
 }
 
 const isTesting = process.env.NODE_ENV === "test";
-const port = isTesting ? 5000 : 3000;
+const port = isTesting ? 5000 : process.env.PORT || 3000;
 
 if (!isTesting) {
   app.listen(port, () => {
