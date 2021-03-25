@@ -43,6 +43,7 @@ require("dotenv").config();
 var express_1 = __importDefault(require("express"));
 require("reflect-metadata");
 var typeorm_1 = require("typeorm");
+var User_1 = require("./entity/User");
 var passport_1 = __importDefault(require("./passport"));
 var app = express_1.default();
 function main(app) {
@@ -51,22 +52,32 @@ function main(app) {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    _a.trys.push([0, 2, , 3]);
-                    return [4 /*yield*/, typeorm_1.createConnection()];
+                    _a.trys.push([0, 5, , 6]);
+                    conn = void 0;
+                    if (!process.env.DATABASE_URL) return [3 /*break*/, 2];
+                    return [4 /*yield*/, typeorm_1.createConnection({
+                            type: "postgres",
+                            url: process.env.DATABASE_URL,
+                            entities: [User_1.User],
+                        })];
                 case 1:
                     conn = _a.sent();
-                    return [3 /*break*/, 3];
-                case 2:
+                    return [3 /*break*/, 4];
+                case 2: return [4 /*yield*/, typeorm_1.createConnection()];
+                case 3:
+                    conn = _a.sent();
+                    _a.label = 4;
+                case 4: return [3 /*break*/, 6];
+                case 5:
                     err_1 = _a.sent();
                     console.log(err_1);
-                    return [3 /*break*/, 3];
-                case 3:
+                    return [3 /*break*/, 6];
+                case 6:
                     log = function () {
                         return function (_req, res, next) {
                             next();
                         };
                     };
-                    // app.use(cors);
                     app.use(passport_1.default.initialize());
                     app.get("/", function (_req, res) {
                         res.send("Hello World!!!");
@@ -98,7 +109,7 @@ function main(app) {
     });
 }
 var isTesting = process.env.NODE_ENV === "test";
-var port = isTesting ? 5000 : 3000;
+var port = isTesting ? 5000 : process.env.PORT || 3000;
 if (!isTesting) {
     app.listen(port, function () {
         console.log("running on port " + port);

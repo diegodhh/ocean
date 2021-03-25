@@ -24,49 +24,38 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.User = void 0;
+exports.Ship = void 0;
 var typeorm_1 = require("typeorm");
-var User = /** @class */ (function (_super) {
-    __extends(User, _super);
-    function User() {
+var Ship = /** @class */ (function (_super) {
+    __extends(Ship, _super);
+    function Ship() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
     __decorate([
         typeorm_1.PrimaryGeneratedColumn(),
         __metadata("design:type", Number)
-    ], User.prototype, "id", void 0);
+    ], Ship.prototype, "id", void 0);
     __decorate([
         typeorm_1.Column({
             length: 100,
             nullable: true,
         }),
         __metadata("design:type", String)
-    ], User.prototype, "firstName", void 0);
+    ], Ship.prototype, "firstName", void 0);
     __decorate([
         typeorm_1.Column({
             length: 100,
             nullable: true,
         }),
         __metadata("design:type", String)
-    ], User.prototype, "lastName", void 0);
+    ], Ship.prototype, "displayName", void 0);
     __decorate([
         typeorm_1.Column({ length: 100, nullable: true }),
         __metadata("design:type", String)
-    ], User.prototype, "googleId", void 0);
-    __decorate([
-        typeorm_1.Column({ length: 100, nullable: true }),
-        __metadata("design:type", String)
-    ], User.prototype, "phone", void 0);
-    __decorate([
-        typeorm_1.Column({
-            length: 120,
-            unique: true,
-        }),
-        __metadata("design:type", String)
-    ], User.prototype, "email", void 0);
-    User = __decorate([
+    ], Ship.prototype, "googleId", void 0);
+    Ship = __decorate([
         typeorm_1.Entity()
-    ], User);
-    return User;
+    ], Ship);
+    return Ship;
 }(typeorm_1.BaseEntity));
-exports.User = User;
+exports.Ship = Ship;
