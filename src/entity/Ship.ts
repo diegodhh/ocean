@@ -1,7 +1,7 @@
 import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
-export class User extends BaseEntity {
+export class Ship extends BaseEntity {
   @PrimaryGeneratedColumn()
   id!: number;
 
@@ -16,17 +16,8 @@ export class User extends BaseEntity {
 
     nullable: true,
   })
-  lastName?: string;
+  displayName?: string;
 
   @Column({ length: 100, nullable: true })
   googleId?: string;
-
-  @Column({ length: 100, nullable: true })
-  phone?: string;
-
-  @Column({
-    length: 120,
-    unique: true,
-  })
-  email!: string;
 }

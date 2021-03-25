@@ -2,12 +2,21 @@ require("dotenv").config();
 import express, { Application, NextFunction, Request, Response } from "express";
 import "reflect-metadata";
 import { createConnection } from "typeorm";
+import { User } from "./entity/User";
 import passport from "./passport";
-
 const app = express();
 async function main(app: Application): Promise<Application> {
   try {
-    const conn = await createConnection();
+    let conn;
+    if (process.env.DATABASE_URL) {
+      conn = await createConnection({
+        type: "postgres",
+        url: process.env.DATABASE_URL,
+        entities: [User],
+      });
+    } else {
+      conn = await createConnection();
+    }
   } catch (err) {
     console.log(err);
   }
@@ -17,7 +26,7 @@ async function main(app: Application): Promise<Application> {
       next();
     };
   };
-  // app.use(cors);
+
   app.use(passport.initialize());
 
   app.get("/", (_req, res) => {
