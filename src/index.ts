@@ -13,9 +13,21 @@ async function main(app: Application): Promise<Application> {
         type: "postgres",
         url: process.env.DATABASE_URL,
         entities: [User],
+        synchronize: true,
+        logging: true,
       });
     } else {
-      conn = await createConnection();
+      conn = await createConnection({
+        type: "postgres",
+        host: "localhost",
+        port: 5432,
+        username: "postgres",
+        password: "Secreta1234abcd",
+        database: "ships-test",
+        synchronize: true,
+        logging: true,
+        entities: [User],
+      });
     }
   } catch (err) {
     console.log(err);

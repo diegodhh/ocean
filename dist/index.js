@@ -59,11 +59,23 @@ function main(app) {
                             type: "postgres",
                             url: process.env.DATABASE_URL,
                             entities: [User_1.User],
+                            synchronize: true,
+                            logging: true,
                         })];
                 case 1:
                     conn = _a.sent();
                     return [3 /*break*/, 4];
-                case 2: return [4 /*yield*/, typeorm_1.createConnection()];
+                case 2: return [4 /*yield*/, typeorm_1.createConnection({
+                        type: "postgres",
+                        host: "localhost",
+                        port: 5432,
+                        username: "postgres",
+                        password: "Secreta1234abcd",
+                        database: "ships-test",
+                        synchronize: true,
+                        logging: true,
+                        entities: [User_1.User],
+                    })];
                 case 3:
                     conn = _a.sent();
                     _a.label = 4;
