@@ -38,7 +38,7 @@ describe("Test the root path", () => {
 });
 
 describe("test google auth", () => {
-  test("It should redirect to something", async (done) => {
+  test("It should redirect to google auth2", async (done) => {
     console.log("test");
     request(await app)
       .get("/google")

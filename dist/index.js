@@ -43,7 +43,7 @@ require("dotenv").config();
 var express_1 = __importDefault(require("express"));
 require("reflect-metadata");
 var typeorm_1 = require("typeorm");
-var User_1 = require("./entity/User");
+var ormconfig_1 = __importDefault(require("./ormconfig"));
 var passport_1 = __importDefault(require("./passport"));
 var app = express_1.default();
 function main(app) {
@@ -52,39 +52,17 @@ function main(app) {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    _a.trys.push([0, 5, , 6]);
+                    _a.trys.push([0, 2, , 3]);
                     conn = void 0;
-                    if (!process.env.DATABASE_URL) return [3 /*break*/, 2];
-                    return [4 /*yield*/, typeorm_1.createConnection({
-                            type: "postgres",
-                            url: process.env.DATABASE_URL,
-                            entities: [User_1.User],
-                            synchronize: true,
-                            logging: true,
-                        })];
+                    return [4 /*yield*/, typeorm_1.createConnection(ormconfig_1.default)];
                 case 1:
                     conn = _a.sent();
-                    return [3 /*break*/, 4];
-                case 2: return [4 /*yield*/, typeorm_1.createConnection({
-                        type: "postgres",
-                        host: "localhost",
-                        port: 5432,
-                        username: "postgres",
-                        password: "Secreta1234abcd",
-                        database: "ships-test",
-                        synchronize: true,
-                        logging: true,
-                        entities: [User_1.User],
-                    })];
-                case 3:
-                    conn = _a.sent();
-                    _a.label = 4;
-                case 4: return [3 /*break*/, 6];
-                case 5:
+                    return [3 /*break*/, 3];
+                case 2:
                     err_1 = _a.sent();
                     console.log(err_1);
-                    return [3 /*break*/, 6];
-                case 6:
+                    return [3 /*break*/, 3];
+                case 3:
                     log = function () {
                         return function (_req, res, next) {
                             next();
@@ -118,13 +96,6 @@ function main(app) {
                     return [2 /*return*/, app];
             }
         });
-    });
-}
-var isTesting = process.env.NODE_ENV === "test";
-var port = isTesting ? 5000 : process.env.PORT || 3000;
-if (!isTesting) {
-    app.listen(port, function () {
-        console.log("running on port " + port);
     });
 }
 exports.default = main(app);

@@ -2,33 +2,14 @@ require("dotenv").config();
 import express, { Application, NextFunction, Request, Response } from "express";
 import "reflect-metadata";
 import { createConnection } from "typeorm";
-import { User } from "./entity/User";
+import ormconfig from "./ormconfig";
 import passport from "./passport";
 const app = express();
 async function main(app: Application): Promise<Application> {
   try {
     let conn;
-    if (process.env.DATABASE_URL) {
-      conn = await createConnection({
-        type: "postgres",
-        url: process.env.DATABASE_URL,
-        entities: [User],
-        synchronize: true,
-        logging: true,
-      });
-    } else {
-      conn = await createConnection({
-        type: "postgres",
-        host: "localhost",
-        port: 5432,
-        username: "postgres",
-        password: "Secreta1234abcd",
-        database: "ships-test",
-        synchronize: true,
-        logging: true,
-        entities: [User],
-      });
-    }
+
+    conn = await createConnection(ormconfig);
   } catch (err) {
     console.log(err);
   }
@@ -82,12 +63,4 @@ async function main(app: Application): Promise<Application> {
   return app;
 }
 
-const isTesting = process.env.NODE_ENV === "test";
-const port = isTesting ? 5000 : process.env.PORT || 3000;
-
-if (!isTesting) {
-  app.listen(port, () => {
-    console.log("running on port " + port);
-  });
-}
 export default main(app);

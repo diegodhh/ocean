@@ -2,9 +2,13 @@
   "name": "Ocean",
   "version": "1.0.0",
   "main": "index.js",
-  "engines": {"node": "14.15.3" , "yarn": "1.22.5" },
+  "engines": {
+    "node": "14.15.3",
+    "yarn": "1.22.5"
+  },
   "author": "Diego Herrero",
   "license": "MIT",
+  "typeormConfig": "src/ormconfig.ts",
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
@@ -14,6 +18,8 @@
     "passport-google-oauth2": "^0.2.0",
     "pg": "^8.5.1",
     "reflect-metadata": "^0.1.13",
+    "ts-node": "^9.1.1",
+    "tsconfig-paths": "^3.9.0",
     "typeorm": "^0.2.31"
   },
   "devDependencies": {
@@ -35,6 +41,8 @@
     "start": "node dist/index.js",
     "dev": "nodemon dist/index.js",
     "watch-ts": "tsc -w",
-    "test": "jest --watchAll --detectOpenHandles"
+    "test": "jest --watchAll --detectOpenHandles",
+    "heroku-postbuild": "typeorm migration:run",
+    "heroku-prebuild": "tsc"
   }
 }

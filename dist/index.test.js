@@ -90,7 +90,7 @@ describe("Test the root path", function () {
     }); });
 });
 describe("test google auth", function () {
-    test("It should redirect to something", function (done) { return __awaiter(void 0, void 0, void 0, function () {
+    test("It should redirect to google auth2", function (done) { return __awaiter(void 0, void 0, void 0, function () {
         var _a;
         return __generator(this, function (_b) {
             switch (_b.label) {
