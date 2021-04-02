@@ -41,8 +41,7 @@
     "start": "node dist/index.js",
     "dev": "nodemon dist/index.js",
     "watch-ts": "tsc -w",
-    "test": "jest --watchAll --detectOpenHandles",
-    "heroku-postbuild": "typeorm migration:run"
+    "test": "jest --watchAll --detectOpenHandles"
     
   }
 }
