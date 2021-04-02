@@ -42,7 +42,7 @@
     "dev": "nodemon dist/index.js",
     "watch-ts": "tsc -w",
     "test": "jest --watchAll --detectOpenHandles",
-    "heroku-postbuild": "typeorm migration:run",
+    "heroku-postbuild": "typeorm migration:run"
     
   }
 }
