@@ -42,7 +42,7 @@
     "dev": "nodemon dist/index.js",
     "watch-ts": "tsc -w",
     "test": "jest --watchAll --detectOpenHandles",
-    "heroku-prebuild": "rm -r dist"
+    "heroku-prebuild": "rm -f -r dist"
     
   }
 }
