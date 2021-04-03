@@ -11,6 +11,7 @@ async function main(app: Application): Promise<Application> {
 
     conn = await createConnection(ormconfig);
     console.log(conn);
+    //coment
   } catch (err) {
     console.log(err);
   }
