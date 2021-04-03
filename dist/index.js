@@ -57,6 +57,7 @@ function main(app) {
                     return [4 /*yield*/, typeorm_1.createConnection(ormconfig_1.default)];
                 case 1:
                     conn = _a.sent();
+                    console.log(conn);
                     return [3 /*break*/, 3];
                 case 2:
                     err_1 = _a.sent();
@@ -75,9 +76,9 @@ function main(app) {
                     app.get("/myapp", function (_req, res) {
                         res.redirect(301, "msrm42app://msrm42app.io/");
                     });
-                    app.get("/auth/google/success", function (_req, res) {
-                        return res.redirect("msrm42app://msrm42app.io?id=" + 123456);
-                    });
+                    app.get("/auth/google/success", function (_req, res) { return res.send("exito"); }
+                    // res.redirect("msrm42app://msrm42app.io?id=" + 123456)
+                    );
                     app.get("/auth/google/failure", function (_req, res) { return res.send("error"); });
                     app.get("/auth/google", passport_1.default.authenticate("google", {
                         scope: ["email", "profile"],

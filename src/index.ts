@@ -10,6 +10,7 @@ async function main(app: Application): Promise<Application> {
     let conn;
 
     conn = await createConnection(ormconfig);
+    console.log(conn);
   } catch (err) {
     console.log(err);
   }
@@ -30,8 +31,10 @@ async function main(app: Application): Promise<Application> {
     res.redirect(301, "msrm42app://msrm42app.io/");
   });
 
-  app.get("/auth/google/success", (_req, res) =>
-    res.redirect("msrm42app://msrm42app.io?id=" + 123456)
+  app.get(
+    "/auth/google/success",
+    (_req, res) => res.send("exito")
+    // res.redirect("msrm42app://msrm42app.io?id=" + 123456)
   );
 
   app.get("/auth/google/failure", (_req, res) => res.send("error"));

@@ -2,7 +2,7 @@ import { join } from "path";
 import { ConnectionOptions } from "typeorm";
 import { User } from "./entity/User";
 
-export default {
+const config: ConnectionOptions = {
   type: "postgres",
   ...(process.env.DATABASE_URL
     ? {
@@ -33,4 +33,6 @@ export default {
   cli: {
     migrationsDir: "src/migrations",
   },
-} as ConnectionOptions;
+};
+
+export default config;
