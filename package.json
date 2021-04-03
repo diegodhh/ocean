@@ -41,7 +41,8 @@
     "start": "node dist/index.js",
     "dev": "nodemon dist/index.js",
     "watch-ts": "tsc -w",
-    "test": "jest --watchAll --detectOpenHandles"
+    "test": "jest --watchAll --detectOpenHandles",
+    "heroku-prebuild": "rm -r dist"
     
   }
 }
