@@ -5,7 +5,15 @@ import { User } from "./entity/User";
 export default {
   type: "postgres",
   ...(process.env.DATABASE_URL
-    ? { url: process.env.DATABASE_URL }
+    ? {
+        url: process.env.DATABASE_URL,
+        ssl: true,
+        extra: {
+          ssl: {
+            rejectUnauthorized: false,
+          },
+        },
+      }
     : {
         host: "localhost",
         port: 5432,
@@ -14,6 +22,7 @@ export default {
         database: "ships-test",
       }),
   entities: [User],
+
   logging: true,
   synchronize: false,
   dropSchema: false,
