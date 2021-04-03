@@ -60,6 +60,10 @@ async function main(app: Application): Promise<Application> {
   });
 
   app.use(log());
+
+  if (process.env.NODE_ENV !== "test") {
+    await app.listen(process.env.PORT);
+  }
   return app;
 }
 

@@ -93,7 +93,12 @@ function main(app) {
                         res.send("logout");
                     });
                     app.use(log());
-                    return [2 /*return*/, app];
+                    if (!(process.env.NODE_ENV !== "test")) return [3 /*break*/, 5];
+                    return [4 /*yield*/, app.listen(process.env.PORT)];
+                case 4:
+                    _a.sent();
+                    _a.label = 5;
+                case 5: return [2 /*return*/, app];
             }
         });
     });
