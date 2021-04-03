@@ -7,8 +7,12 @@ const config: ConnectionOptions = {
   ...(process.env.DATABASE_URL
     ? {
         url: process.env.DATABASE_URL,
+        ssl: true,
+        logging: false,
         extra: {
-          ssl: true,
+          ssl: {
+            rejectUnauthorized: false,
+          },
         },
       }
     : {
@@ -17,10 +21,10 @@ const config: ConnectionOptions = {
         username: "postgres",
         password: "Secreta1234abcd",
         database: "ships-test",
+        logging: true,
       }),
   entities: [User],
 
-  logging: true,
   synchronize: false,
   dropSchema: false,
   // Run migrations automatically,
