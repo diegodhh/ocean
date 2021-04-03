@@ -7,11 +7,8 @@ const config: ConnectionOptions = {
   ...(process.env.DATABASE_URL
     ? {
         url: process.env.DATABASE_URL,
-        ssl: true,
         extra: {
-          ssl: {
-            rejectUnauthorized: false,
-          },
+          ssl: true,
         },
       }
     : {
