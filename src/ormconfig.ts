@@ -1,7 +1,7 @@
 import { join } from "path";
 import { ConnectionOptions } from "typeorm";
 import { User } from "./entity/User";
-
+console.log(process.env.DATABASE_URL);
 const config: ConnectionOptions = {
   type: "postgres",
   ...(process.env.DATABASE_URL
