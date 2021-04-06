@@ -3,7 +3,6 @@ import express, { Application, NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import "reflect-metadata";
 import { createConnection } from "typeorm";
-import { User } from "./entity/User";
 import ormconfig from "./ormconfig";
 import passport from "./passport";
 const app = express();
@@ -33,7 +32,7 @@ async function main(app: Application): Promise<Application> {
   });
 
   app.get("/myapp", (_req, res) => {
-    res.redirect(301, "msrm42app://msrm42app.io/");
+    res.redirect("msrm42app://msrm42app.io?id=diego");
   });
 
   app.get("/auth/google/success", (req, res) => {
@@ -66,9 +65,7 @@ async function main(app: Application): Promise<Application> {
           )
         : null;
       res.cookie("token", token);
-      res.redirect(
-        "msm42app://msrm42app.io?id=" + (req.user as User).firstName
-      );
+      res.redirect(301, "msm42app://msrm42app.io?id=");
     }
   );
 
