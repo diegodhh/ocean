@@ -65,7 +65,8 @@ async function main(app: Application): Promise<Application> {
           )
         : null;
       res.cookie("token", token);
-      res.redirect(301, "msm42app://msrm42app.io?id=");
+      res.cookie("test1", "test");
+      res.redirect("msrm42app://msrm42app.io?id=diego");
     }
   );
 
