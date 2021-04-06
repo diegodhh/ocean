@@ -1,5 +1,5 @@
 require("dotenv").config();
-//allways up there dotenv
+//allways up there dotenvjjjjjjjjjjjjjjjj
 import express, { Application, NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import "reflect-metadata";
@@ -61,13 +61,13 @@ async function main(app: Application): Promise<Application> {
     }),
 
     (req, res) => {
-      const { user } = <{ user: User }>req || {};
+      const { user } = <{ user: User }>(<unknown>req) || {};
       const token = user
         ? jwt.sign(JSON.parse(JSON.stringify(user)), process.env.JWT_SECRET!)
         : null;
       res.cookie("token", token);
       res.cookie("test1", "test");
-      res.redirect(`msrm42app://msrm42app.io?token=${token}?id=${user?.id}`);
+      res.redirect(`msrm42app://msrm42app.io?token=${token}&id=${user?.id}`);
     }
   );
 
