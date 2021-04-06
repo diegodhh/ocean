@@ -1,8 +1,10 @@
 require("dotenv").config();
+//allways up there dotenv
 import express, { Application, NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import "reflect-metadata";
 import { createConnection } from "typeorm";
+import { User } from "./entity/User";
 import ormconfig from "./ormconfig";
 import passport from "./passport";
 const app = express();
@@ -57,16 +59,15 @@ async function main(app: Application): Promise<Application> {
       failureRedirect: "/auth/google/failure",
       session: false,
     }),
+
     (req, res) => {
-      const token = req.user
-        ? jwt.sign(
-            JSON.parse(JSON.stringify(req.user)),
-            process.env.JWT_SECRET!
-          )
+      const { user } = <{ user: User }>req || {};
+      const token = user
+        ? jwt.sign(JSON.parse(JSON.stringify(user)), process.env.JWT_SECRET!)
         : null;
       res.cookie("token", token);
       res.cookie("test1", "test");
-      res.redirect("msrm42app://msrm42app.io?id=diego");
+      res.redirect(`msrm42app://msrm42app.io?token=${token}?id=${user?.id}`);
     }
   );
 
@@ -74,8 +75,6 @@ async function main(app: Application): Promise<Application> {
     req.logout();
     res.send("logout");
   });
-
-  app.use(log());
 
   if (process.env.NODE_ENV !== "test") {
     await app.listen(process.env.PORT);
