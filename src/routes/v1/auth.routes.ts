@@ -1,9 +1,16 @@
 import express from "express";
+import httpStatus from "http-status";
 import jwt from "jsonwebtoken";
+import config from "../../config/config";
 import { User } from "../../entity/User";
+import { LoginSchema } from "../../joi/schemas/auth.schemas";
 import auth from "../../middleware/auth";
-import { APIvertion, prefixes } from "./../../types/prefixes";
+import validate from "../../middleware/validate";
+import { APIvertion } from "../../types/api";
+import { AuthRoutes, V1Routes } from "../../types/api/v1";
+import ApiError from "../../util/ApiError";
 import passport from "./passport";
+
 const router = express.Router();
 const routerWrapper = express.Router();
 router.get("/google/success", (req, res) => {
@@ -25,14 +32,14 @@ router.get(
   "/google/callback",
 
   passport.authenticate("google", {
-    failureRedirect: `${APIvertion.v1}${prefixes.auth}/google/failure`,
+    failureRedirect: `${APIvertion.V1}${V1Routes.AUTH}/google/failure`,
     session: false,
   }),
 
   (req, res) => {
     const { user } = <{ user: User }>(<unknown>req) || {};
     const token = user
-      ? jwt.sign(JSON.parse(JSON.stringify(user)), process.env.JWT_SECRET!)
+      ? jwt.sign(JSON.parse(JSON.stringify(user)), config.jwt.secret)
       : null;
     res.cookie("token", token);
     res.cookie("test1", "test");
@@ -44,7 +51,19 @@ router.get("/logout", function (req, res) {
   req.logout();
   res.send("logout");
 });
-router.get("/me", auth, (req, res) => {
+router.get(`${AuthRoutes.ME}`, auth, (req, res) => {
   res.send(req.user);
 });
-export default routerWrapper.use(prefixes.auth, router);
+router.post(`${AuthRoutes.LOGIN}`, validate(LoginSchema), (req, res) => {
+  throw new ApiError(
+    httpStatus.UNAUTHORIZED,
+    "the password or email is invalid"
+  );
+});
+router.post(`${AuthRoutes.SIGNUP}`, (req, res) => {
+  throw new ApiError(
+    httpStatus.BAD_REQUEST,
+    "the password or email is invalid"
+  );
+});
+export default routerWrapper.use(V1Routes.AUTH, router);

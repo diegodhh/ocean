@@ -1,20 +1,20 @@
 import { NextFunction, Request, Response } from "express";
-const Joi = require("joi");
-const httpStatus = require("http-status");
-const pick = require("../utils/pick");
-const ApiError = require("../utils/ApiError");
+import httpStatus from "http-status";
+import { ObjectSchema, ValidationError } from "joi";
+import ApiError from "../util/ApiError";
+import pick from "../util/pick";
 
-const validate = (schema) => (
+const validate = <T>(schema: ObjectSchema) => (
   req: Request,
   _res: Response,
   next: NextFunction
 ) => {
-  const validSchema = pick(schema, ["params", "query", "body"]);
-  const object = pick(req, Object.keys(validSchema));
-  const { value, error } = Joi.compile(validSchema)
-    .prefs({ errors: { label: "key" } })
-    .validate(object);
-
+  const filterReq = pick(req, ["params", "query", "body"], true);
+  const { value, error } = <{ value: T; error: ValidationError }>schema
+    .prefs({
+      errors: { label: "key" },
+    })
+    .validate(filterReq);
   if (error) {
     const errorMessage = error.details
       .map((details) => details.message)

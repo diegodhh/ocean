@@ -1,12 +1,12 @@
 import { join } from "path";
 import { ConnectionOptions } from "typeorm";
+import config from "./config/config";
 import { User } from "./entity/User";
-console.log(process.env.DATABASE_URL);
-const config: ConnectionOptions = {
-  type: "postgres",
-  ...(process.env.DATABASE_URL
+const ormConfig: ConnectionOptions = {
+  type: config.orm.type,
+  ...(config.orm.databaseURL
     ? {
-        url: process.env.DATABASE_URL,
+        url: config.orm.databaseURL,
         ssl: true,
         logging: false,
         extra: {
@@ -36,4 +36,4 @@ const config: ConnectionOptions = {
   },
 };
 
-export default config;
+export default ormConfig;

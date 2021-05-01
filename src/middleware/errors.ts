@@ -1,7 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
+import config from "../config/config";
+import { Env } from "../types/Env";
 import { IError } from "../types/IError";
 import ApiError from "../util/ApiError";
+import { errorList } from "./../types/IError";
 const logger = { error: (str: any) => console.log(str) };
 export const errorConverter = (
   err: IError | ApiError,
@@ -23,12 +26,15 @@ export const errorConverter = (
 
 export const errorHandler = (
   err: ApiError,
-  req: Request,
+  _req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ) => {
+  if (!(err instanceof ApiError)) {
+    throw new Error(errorList.NotApiError);
+  }
   let { statusCode, message } = err;
-  if (process.env.NODE_ENV === "production" && !err.isOperational) {
+  if (config.env === Env.PRODUCTION && !err.isOperational) {
     statusCode = httpStatus.INTERNAL_SERVER_ERROR;
     message = httpStatus[httpStatus.INTERNAL_SERVER_ERROR] as string;
   }
@@ -38,10 +44,10 @@ export const errorHandler = (
   const response = {
     code: statusCode,
     message,
-    ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
+    ...(config.env === Env.DEVELOPMENT && { stack: err.stack }),
   };
 
-  if (process.env.NODE_ENV === "development") {
+  if (config.env === Env.DEVELOPMENT) {
     logger.error(err);
   }
 

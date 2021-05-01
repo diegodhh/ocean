@@ -7,7 +7,6 @@ const request = require("supertest");
 
 describe("Test the root path", () => {
   test("It should response the GET method", async (done) => {
-    console.log("test");
     request(await app)
       .get("/")
       .then((response: Response) => {
@@ -18,7 +17,6 @@ describe("Test the root path", () => {
       });
   });
   // test("It should return not found error", async (done) => {
-  //   console.log("test");
   //   request(await app)
   //     .get("/not-suported-route-string")
   //     .then((response: Response) => {

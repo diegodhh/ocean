@@ -1,4 +1,4 @@
-class ApiError extends Error {
+export default class ApiError extends Error {
   statusCode: number;
   isOperational: boolean;
   constructor(
@@ -18,5 +18,3 @@ class ApiError extends Error {
     }
   }
 }
-
-export default ApiError;

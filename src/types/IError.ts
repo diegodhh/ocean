@@ -4,3 +4,7 @@ export interface IError {
   message: string;
   stack?: string;
 }
+
+export enum errorList {
+  NotApiError = "Error was not previusly converted",
+}

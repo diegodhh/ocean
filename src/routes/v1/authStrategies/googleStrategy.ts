@@ -4,15 +4,17 @@ import {
   Strategy,
   VerifyCallback,
 } from "passport-google-oauth2";
+import config from "../../../config/config";
 import { User } from "../../../entity/User";
+import { APIvertion } from "../../../types/api";
+import { V1Routes } from "../../../types/api/v1";
 import { GoogleProfileSchema } from "../../../types/GoogleProfileSchema";
-import { APIvertion, prefixes } from "../../../types/prefixes";
 
 const googleStrategy: Strategy = new GoogleStrategy(
   {
-    clientID: process.env.GOOGLE_CLIENT_ID as string,
-    clientSecret: process.env.CLIENT_SECRET as string,
-    callbackURL: `${process.env.DOMAIN}${APIvertion.v1}${prefixes.auth}/google/callback`,
+    clientID: config.googleStrategy.clientID!,
+    clientSecret: config.googleStrategy.clientSecret!,
+    callbackURL: `${process.env.DOMAIN}${APIvertion.V1}${V1Routes.AUTH}/google/callback`,
     passReqToCallback: true,
   },
 
@@ -37,10 +39,7 @@ const googleStrategy: Strategy = new GoogleStrategy(
         }).save();
       }
 
-      console.log(request.cookies);
-
       done(null, user);
-      console.log();
     } catch (err) {
       done(err, profile);
     }
