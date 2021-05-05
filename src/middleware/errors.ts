@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
 import config from "../config/config";
 import { Env } from "../types/Env";
+import { ErrorApiResponse } from "../types/errors";
 import { IError } from "../types/IError";
 import ApiError from "../util/ApiError";
 import { errorList } from "./../types/IError";
@@ -19,7 +20,7 @@ export const errorConverter = (
         httpStatus.BAD_REQUEST
       : httpStatus.INTERNAL_SERVER_ERROR;
     const message = error.message || (httpStatus[statusCode] as string);
-    error = new ApiError(statusCode, message, false, err.stack);
+    error = new ApiError(statusCode, message, undefined, false, err.stack);
   }
   next(error);
 };
@@ -33,7 +34,7 @@ export const errorHandler = (
   if (!(err instanceof ApiError)) {
     throw new Error(errorList.NotApiError);
   }
-  let { statusCode, message } = err;
+  let { statusCode, message, customErrorCodes } = err;
   if (config.env === Env.PRODUCTION && !err.isOperational) {
     statusCode = httpStatus.INTERNAL_SERVER_ERROR;
     message = httpStatus[httpStatus.INTERNAL_SERVER_ERROR] as string;
@@ -41,9 +42,10 @@ export const errorHandler = (
 
   res.locals.errorMessage = err.message;
 
-  const response = {
+  const response: ErrorApiResponse = {
     code: statusCode,
     message,
+    customErrorCodes,
     ...(config.env === Env.DEVELOPMENT && { stack: err.stack }),
   };
 

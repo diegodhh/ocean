@@ -2,6 +2,7 @@ import { join } from "path";
 import { ConnectionOptions } from "typeorm";
 import config from "./config/config";
 import { User } from "./entity/User";
+import { Env } from "./types/Env";
 const ormConfig: ConnectionOptions = {
   type: config.orm.type,
   ...(config.orm.databaseURL
@@ -21,7 +22,7 @@ const ormConfig: ConnectionOptions = {
         username: "postgres",
         password: "Secreta1234abcd",
         database: "ships-test",
-        logging: true,
+        logging: config.env === Env.TEST ? false : true,
       }),
   entities: [User],
 

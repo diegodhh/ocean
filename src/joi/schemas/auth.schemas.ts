@@ -1,19 +1,22 @@
 import Joi from "joi";
-import { password } from "./custom.validation";
-
+import { custom } from "./custom.validation";
 export const RegisterSchema = Joi.object()
   .keys({
     body: Joi.object().keys({
       email: Joi.string().required().email(),
-      password: Joi.string().required().custom(password),
+      password: custom.customPassword(),
       name: Joi.string().required(),
     }),
   })
   .label("Register");
+
 export const LoginSchema = Joi.object({
   body: Joi.object({
-    email: Joi.string().required().email(),
-    password: Joi.string().required().custom(password),
+    email: Joi.string()
+      .required()
+      .email()
+      .messages({ "number.base": "abarajame la  ba;era" }),
+    password: custom.customPassword(),
   }).required(),
 }).label("Login");
 

@@ -9,8 +9,14 @@ import validate from "../../middleware/validate";
 import { APIvertion } from "../../types/api";
 import { AuthRoutes, V1Routes } from "../../types/api/v1";
 import ApiError from "../../util/ApiError";
+import { loginController } from "./../../controllers/LoginController";
+import {} from "./../../joi/schemas/auth.schemas";
 import passport from "./passport";
 
+export type LoginSuccess = {
+  accessToken: string;
+  refreshToken: string;
+};
 const router = express.Router();
 const routerWrapper = express.Router();
 router.get("/google/success", (req, res) => {
@@ -54,12 +60,8 @@ router.get("/logout", function (req, res) {
 router.get(`${AuthRoutes.ME}`, auth, (req, res) => {
   res.send(req.user);
 });
-router.post(`${AuthRoutes.LOGIN}`, validate(LoginSchema), (req, res) => {
-  throw new ApiError(
-    httpStatus.UNAUTHORIZED,
-    "the password or email is invalid"
-  );
-});
+router.post(`${AuthRoutes.LOGIN}`, validate(LoginSchema), loginController);
+
 router.post(`${AuthRoutes.SIGNUP}`, (req, res) => {
   throw new ApiError(
     httpStatus.BAD_REQUEST,

@@ -4,10 +4,8 @@ import { IError } from "../types/IError";
 import ApiError from "../util/ApiError";
 import "./../jestUtils/customMatchers";
 import { errorList } from "./../types/IError";
-const errorConverter: ErrorMiddleWareWithPartials = require("./errors")
-  .errorConverter;
-const errorHandler: ErrorMiddleWareWithPartials = require("./errors")
-  .errorHandler;
+import { errorConverter, errorHandler } from "./errors";
+
 type ErrorMiddleWareWithPartials = (
   err: IError | ApiError,
   _req: Partial<Request>,
@@ -57,9 +55,14 @@ describe(" error handler test suite", () => {
       return res as Response;
     });
     const genericError = new Error();
-    expect(() => errorHandler(genericError, req, res, () => undefined)).toThrow(
-      new Error(errorList.NotApiError)
-    );
+    expect(() =>
+      errorHandler(
+        genericError as ApiError,
+        req,
+        res as Response,
+        () => undefined
+      )
+    ).toThrow(new Error(errorList.NotApiError));
   });
   // test("If Error doesn't have status code should return ApiError with badrequest", () => {
   //   const req = {} as Request;

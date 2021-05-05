@@ -1,30 +1,26 @@
-import { Response } from "express";
 import faker from "faker";
 import httpStatus from "http-status";
-import { Server } from "node:http";
+import jwt from "jsonwebtoken";
+import request from "supertest";
 import { Connection } from "typeorm";
 import app from "../../app";
+import config from "../../config/config";
 import { APIvertion } from "../../types/api";
 import { AuthRoutes, V1Routes } from "../../types/api/v1";
+import { CustomApiErrors, ErrorApiResponse } from "../../types/errors";
+import { JWTPayload } from "../../types/JWTPayload";
 import { tokenTypes } from "../../types/tokens";
+import { hashPassword } from "../../util/hashPassword";
 import { User } from "./../../entity/User";
 import "./../../jestUtils/customMatchers";
+import { LoginSuccess } from "./../../routes/v1/auth.routes";
 import { generateToken } from "./../../services/token.service";
-import { customApiErrors } from "./../../types/errors/index";
 import { TestingConnection } from "./ConnectionInstance";
-const PORT = 5000;
-let server: Server | null;
-const request = require("supertest");
-interface SuperTestResponse extends Response {
-  body: any;
-  headers: any;
-  text: string;
-}
-describe("Test the root path", () => {
+describe("auth rout", () => {
   test("It should response the GET method", async (done) => {
     request(await app)
       .get("/")
-      .then((response: SuperTestResponse) => {
+      .then((response) => {
         expect(response.status).toBe(200);
 
         expect(response.text).toEqual(expect.stringMatching("Hello World"));
@@ -37,9 +33,9 @@ describe("test google auth", () => {
   test("It should redirect to google auth2", async (done) => {
     request(await app)
       .get("/v1/auth/google")
-      .then((response: SuperTestResponse) => {
+      .then((response) => {
         expect(response.status).toBe(302); //found
-        expect((response.headers as any).location).toEqual(
+        expect(response.headers.location).toEqual(
           expect.stringMatching("https://accounts.google.com/o/oauth2")
         );
         done();
@@ -48,7 +44,7 @@ describe("test google auth", () => {
   test("It should redirect to something", async (done) => {
     request(await app)
       .get("/v1/auth/google/callback")
-      .then((response: SuperTestResponse) => {
+      .then((response) => {
         expect(response.status).toBe(302); //found
         done();
       });
@@ -57,7 +53,7 @@ describe("test google auth", () => {
   test("It should return 200 when failed", async (done) => {
     request(await app)
       .get("/v1/auth/google/failure")
-      .then((response: SuperTestResponse) => {
+      .then((response) => {
         expect(response.status).toBe(200); //foundd21212
         done();
       });
@@ -71,7 +67,7 @@ describe("test google auth", () => {
     test("Should return unautorized", async (done) => {
       request(await app)
         .get("/v1/auth/me")
-        .then((response: SuperTestResponse) => {
+        .then((response) => {
           expect(response.status).toBe(httpStatus.UNAUTHORIZED); //foundd21212
           done();
         });
@@ -80,7 +76,7 @@ describe("test google auth", () => {
       request(await app)
         .get("/v1/auth/me")
         .set("authorization", "token 1234567890")
-        .then((response: SuperTestResponse) => {
+        .then((response) => {
           expect(response.status).toBe(httpStatus.UNAUTHORIZED); //foundd21212
           done();
         });
@@ -89,116 +85,247 @@ describe("test google auth", () => {
       request(await app)
         .get("/v1/auth/me")
         .set("Authorization", "Bearer 1234567890")
-        .then((response: SuperTestResponse) => {
+        .then((response) => {
           expect(response.status).toBe(httpStatus.UNAUTHORIZED); //foundd21212
           done();
         });
     });
-    describe("create and delete user on database", () => {
-      let user: User, userData;
-      beforeEach(async () => {
-        userData = {
-          firstName: faker.name.firstName(),
-          email: faker.internet.email().toLowerCase(),
-          lastName: faker.name.lastName(),
-          phone: faker.phone.phoneNumber(),
-        };
-
-        user = await User.create(userData).save();
-      });
-      afterEach(async () => {
-        if (user) {
-          await User.delete({ id: user.id });
-        }
-      });
-      test("Should return authorized and object containing new user id and email", async (done) => {
-        const token = await generateToken(user.id, tokenTypes.ACCESS);
-        if (!user) {
-          throw new Error("can't test without user");
-        }
-        const response: SuperTestResponse = await request(await app)
-          .get("/v1/auth/me")
-          .set("authorization", `Bearer ${token}`);
-
-        expect(response.status).toBe(httpStatus.OK);
-        const { id, email } = user;
-        expect(response.body).toEqual(expect.objectContaining({ id, email }));
-        done();
-      });
-      test("Should return unuthorized because is not a access token", async (done) => {
-        const token = await generateToken(user.id, tokenTypes.REFRESH);
-        if (!user) {
-          throw new Error("can't test without user");
-        }
-        const response: SuperTestResponse = await request(await app)
-          .get(`${APIvertion.V1}${V1Routes.AUTH}${AuthRoutes.ME}`)
-          .set("authorization", `Bearer ${token}`);
-
-        expect(response.status).toBe(httpStatus.UNAUTHORIZED);
-        const { id, email } = user;
-        done();
-      });
-    });
   });
-  ///login
-  describe("login route", () => {
-    let conn;
-    beforeAll(async () => {
-      conn = await TestingConnection.Instance.conn;
-    });
-
-    test("login should return not authentique code is user doest'n exist", async (done) => {
-      // dont want the user to know is the user exist or not.
-      const nonExistentUser = {
+  describe("create and delete user on database", () => {
+    let user: User, userData;
+    beforeEach(async () => {
+      userData = {
+        firstName: faker.name.firstName(),
         email: faker.internet.email().toLowerCase(),
-        password: faker.internet.password(),
+        lastName: faker.name.lastName(),
+        phone: faker.phone.phoneNumber(),
       };
-      const response: SuperTestResponse = await request(await app)
-        .post(`${APIvertion.V1}${V1Routes.AUTH}${AuthRoutes.LOGIN}`)
-        .send(nonExistentUser)
-        .set("Accept", "application/json")
-        .expect("Content-Type", /json/)
-        .expect(httpStatus.UNAUTHORIZED);
+
+      user = await User.create(userData).save();
+    });
+    afterEach(async () => {
+      if (user) {
+        await User.delete({ id: user.id });
+      }
+    });
+    test("Should return authorized and object containing new user id and email", async (done) => {
+      const token = await generateToken(user.id, tokenTypes.ACCESS);
+      if (!user) {
+        throw new Error("can't test without user");
+      }
+      const response = await request(await app)
+        .get("/v1/auth/me")
+        .set("authorization", `Bearer ${token}`);
+
+      expect(response.status).toBe(httpStatus.OK);
+      const { id, email } = user;
+      expect(response.body).toEqual(expect.objectContaining({ id, email }));
       done();
     });
-    test("login should return bad request if data validation fail", async () => {
-      // dont want the user to know is the user exist or not.
+    test("Should return unuthorized because is not a access token", async (done) => {
+      const token = await generateToken(user.id, tokenTypes.REFRESH);
+      if (!user) {
+        throw new Error("can't test without user");
+      }
+      const response = await request(await app)
+        .get(`${APIvertion.V1}${V1Routes.AUTH}${AuthRoutes.ME}`)
+        .set("authorization", `Bearer ${token}`);
 
-      const invalidUser = {
-        email: "invalidMail",
-        password: "tooshort",
-      };
-      const response: SuperTestResponse = await request(await app)
-        .post(`${APIvertion.V1}${V1Routes.AUTH}${AuthRoutes.LOGIN}`)
-        .send(invalidUser)
-        .set("Accept", "application/json")
-        .expect("Content-Type", /json/)
-        .expect(httpStatus.BAD_REQUEST);
+      expect(response.status).toBe(httpStatus.UNAUTHORIZED);
+      const { id, email } = user;
+      done();
     });
   });
 });
-//singup
-describe("singup route", () => {
+///login
+describe("login route", () => {
   let conn;
-  beforeAll(async () => {
+  beforeAll(async (done) => {
     conn = await TestingConnection.Instance.conn;
+    done();
   });
 
-  test("signup should return bad request if data validation fail", async () => {
+  test("login should return not authentique code is user doest'n exist", async (done) => {
+    // dont want the user to know is the user exist or not.
+    const nonExistentUser = {
+      email: faker.internet.email().toLowerCase(),
+      password: faker.internet.password(),
+    };
+    const response = await request(await app)
+      .post(`${APIvertion.V1}${V1Routes.AUTH}${AuthRoutes.LOGIN}`)
+      .send(nonExistentUser)
+      .set("Accept", "application/json")
+      .expect("Content-Type", /json/)
+      .expect(httpStatus.UNAUTHORIZED);
+
+    expect((response.body as ErrorApiResponse).customErrorCodes).toEqual(
+      expect.arrayContaining([CustomApiErrors.USER_NOT_EXIST])
+    );
+    done();
+  });
+  test("login should return bad request if data validation fail", async () => {
     // dont want the user to know is the user exist or not.
 
     const invalidUser = {
-      email: "invalidMail",
+      email: faker.internet.email(),
       password: "tooshort",
     };
-    const response: SuperTestResponse = await request(await app)
-      .post(`${APIvertion.V1}${V1Routes.AUTH}${AuthRoutes.SIGNUP}`)
+    const response = await request(await app)
+      .post(`${APIvertion.V1}${V1Routes.AUTH}${AuthRoutes.LOGIN}`)
       .send(invalidUser)
       .set("Accept", "application/json")
       .expect("Content-Type", /json/)
       .expect(httpStatus.BAD_REQUEST);
-    expect(response.body).toEqual(
-      expect.objectContaining(customApiErrors.wrongPassword)
+    expect((response.body as ErrorApiResponse).customErrorCodes).toEqual(
+      expect.arrayContaining([CustomApiErrors.PASSWORD_TOO_SHORT])
     );
   });
+  test("should return Unautorized is user exist but the password is incorrect", async (done) => {
+    const userData = {
+      firstName: faker.name.firstName(),
+      email: faker.internet.email().toLowerCase(),
+      lastName: faker.name.lastName(),
+      phone: faker.phone.phoneNumber(),
+      password: faker.internet.password(),
+    };
+    debugger;
+
+    const existingUser = await User.create(userData).save();
+    debugger;
+    const notThePassword = {
+      email: existingUser.email,
+      password: "NotThePassword1234",
+    };
+    const response = await request(await app)
+      .post(`${APIvertion.V1}${V1Routes.AUTH}${AuthRoutes.LOGIN}`)
+      .send(notThePassword)
+      .set("Accept", "application/json")
+      .expect("Content-Type", /json/)
+      .expect(httpStatus.UNAUTHORIZED);
+    expect((response.body as ErrorApiResponse).customErrorCodes).toEqual(
+      expect.arrayContaining([CustomApiErrors.INCORRECT_EMAIL_OR_PASSWORD])
+    );
+
+    await User.delete({ id: existingUser.id });
+    done();
+  });
+  test("should return Unautorized is user does not have password and the respective custom errror code", async (done) => {
+    const userData = {
+      firstName: faker.name.firstName(),
+      email: faker.internet.email().toLowerCase(),
+      lastName: faker.name.lastName(),
+      phone: faker.phone.phoneNumber(),
+    };
+
+    const existingUser = await User.create(userData).save();
+    const notThePassword = {
+      email: existingUser.email,
+      password: "NotThePassword1234",
+    };
+    const response = await request(await app)
+      .post(`${APIvertion.V1}${V1Routes.AUTH}${AuthRoutes.LOGIN}`)
+      .send(notThePassword)
+      .set("Accept", "application/json")
+      .expect("Content-Type", /json/)
+      .expect(httpStatus.UNAUTHORIZED);
+    expect((response.body as ErrorApiResponse).customErrorCodes).toEqual(
+      expect.arrayContaining([CustomApiErrors.USER_DOES_NOT_HAVE_PASSWORD])
+    );
+
+    await User.delete({ id: existingUser.id });
+    done();
+  });
+
+  test("should return OK status code 200 and shoul return refresh token and hash token", async (done) => {
+    let hash: string;
+
+    const userData = {
+      firstName: faker.name.firstName(),
+      email: faker.internet.email().toLowerCase(),
+      lastName: faker.name.lastName(),
+      phone: faker.phone.phoneNumber(),
+      password: faker.internet.password(),
+    };
+
+    hash = await hashPassword(userData.password);
+    const existingUser = await User.create({
+      ...userData,
+      ...{ password: hash },
+    }).save();
+    const notThePassword = {
+      email: existingUser.email,
+      password: userData.password,
+    };
+    const response = await request(await app)
+      .post(`${APIvertion.V1}${V1Routes.AUTH}${AuthRoutes.LOGIN}`)
+      .send(notThePassword)
+      .set("Accept", "application/json")
+      .expect("Content-Type", /json/)
+      .expect(httpStatus.OK);
+    // expect((response.body as ErrorApiResponse).customErrorCodes).toEqual(
+    //   expect.arrayContaining([CustomApiErrors.USER_DOES_NOT_HAVE_PASSWORD])
+    // );
+
+    expect(response.body).toMatchObject(
+      expect.objectContaining({
+        accessToken: expect.any(String),
+        refreshToken: expect.any(String),
+      } as LoginSuccess)
+    );
+
+    //// checking access token
+    const { refreshToken, accessToken }: LoginSuccess = response.body;
+    await checkToken(refreshToken, existingUser, tokenTypes.REFRESH);
+
+    await checkToken(accessToken, existingUser, tokenTypes.ACCESS);
+    await User.delete({ id: existingUser.id });
+
+    done();
+  });
+  //todo test user login succesfully.
 });
+
+const checkToken = async (
+  token: string,
+  user: User,
+  expectedType: tokenTypes
+): Promise<object> => {
+  const expectedPayload: Partial<JWTPayload> = {
+    sub: user.id,
+    type: expectedType,
+  };
+  return new Promise((resolve, reject) => {
+    jwt.verify(token, config.jwt.secret, (err, decoded) => {
+      if (err) throw new Error("jwt decoded fail");
+      err && reject(err);
+      expect(decoded).toEqual(expect.objectContaining(expectedPayload));
+      resolve(decoded!);
+    });
+  });
+};
+
+//singup
+// describe("singup route", () => {
+//   let conn;
+//   beforeAll(async () => {
+//     conn = await TestingConnection.Instance.conn;
+//   });
+
+//   test("signup should return bad request if data validation fail", async () => {
+//     // dont want the user to know is the user exist or not.
+
+//     const invalidUser = {
+//       email: "invalidMail",
+//       password: "tooshort",
+//     };
+//     const response: SuperTestResponse = await request(await app)
+//       .post(`${APIvertion.V1}${V1Routes.AUTH}${AuthRoutes.SIGNUP}`)
+//       .send(invalidUser)
+//       .set("Accept", "application/json")
+//       .expect("Content-Type", /json/)
+//       .expect(httpStatus.BAD_REQUEST);
+//     expect(response.body).toEqual(
+//       expect.objectContaining(customApiErrors.wrongPassword)
+//     );
+//   });
+// });

@@ -3,6 +3,7 @@ import httpStatus from "http-status";
 import { ObjectSchema, ValidationError } from "joi";
 import ApiError from "../util/ApiError";
 import pick from "../util/pick";
+import { CustomApiErrors } from "./../types/errors/index";
 
 const validate = <T>(schema: ObjectSchema) => (
   req: Request,
@@ -16,12 +17,18 @@ const validate = <T>(schema: ObjectSchema) => (
     })
     .validate(filterReq);
   if (error) {
-    const errorMessage = error.details
-      .map((details) => details.message)
-      .join(", ");
-    return next(new ApiError(httpStatus.BAD_REQUEST, errorMessage));
+    const validationErrors: Array<CustomApiErrors> = error.details?.map(
+      (details) => CustomApiErrors[details.message as CustomApiErrors]
+    );
+
+    const errorMessages = error.details
+      ?.map((details) => details.message)
+      .join(",");
+
+    next(new ApiError(httpStatus.BAD_REQUEST, errorMessages, validationErrors));
   }
   Object.assign(req, value);
+
   return next();
 };
 

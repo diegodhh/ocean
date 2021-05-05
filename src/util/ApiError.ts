@@ -1,15 +1,14 @@
+import { CustomApiErrors } from "./../types/errors/index";
+
 export default class ApiError extends Error {
-  statusCode: number;
-  isOperational: boolean;
   constructor(
-    statusCode: number,
+    public statusCode: number,
     message: string | undefined,
-    isOperational = true,
+    public customErrorCodes?: Array<CustomApiErrors>,
+    public isOperational: boolean = true,
     stack = ""
   ) {
     super(message);
-    this.statusCode = statusCode;
-    this.isOperational = isOperational;
 
     if (stack) {
       this.stack = stack;

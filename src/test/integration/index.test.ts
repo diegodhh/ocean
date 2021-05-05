@@ -1,8 +1,6 @@
-import { Server } from "node:http";
 import app from "../../app";
 
 const PORT = 5000;
-let server: Server | null;
 const request = require("supertest");
 
 describe("Test the root path", () => {

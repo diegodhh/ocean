@@ -8,10 +8,11 @@ export function encodeJWT(
   payload: string | Buffer | object,
   secretOrPrivateKey: Secret,
   options: SignOptions = {}
-): Promise<unknown> {
+): Promise<string> {
   return new Promise((resolve, reject) => {
     jwt.sign(payload, secretOrPrivateKey, options, (err, token) => {
       if (err) return reject(err);
+      if (!token) return new Error("encodeJWT fail");
       else return resolve(token);
     });
   });
