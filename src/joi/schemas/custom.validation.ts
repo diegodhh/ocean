@@ -35,7 +35,6 @@ export const custom: CustomJoi = Joi.extend((joi) => {
     },
     validate(value, helpers) {
       // Base validation regardless of the rules applied
-
       if (!(value.length >= 14 && value.length < 30)) {
         return { value, errors: helpers.error(passwordErrors.short) };
       }

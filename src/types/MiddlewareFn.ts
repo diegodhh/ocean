@@ -1,7 +1,7 @@
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Response } from "express";
 
 export type MiddlewareFn = (
-  req: Request,
+  req: Express.Request,
   res: Response,
   next: NextFunction
 ) => void;

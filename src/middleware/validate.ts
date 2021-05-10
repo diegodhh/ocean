@@ -18,13 +18,13 @@ const validate = <T>(schema: ObjectSchema) => (
     .validate(filterReq);
   if (error) {
     const validationErrors: Array<CustomApiErrors> = error.details?.map(
-      (details) => CustomApiErrors[details.message as CustomApiErrors]
+      (details) =>
+        CustomApiErrors[details.message as CustomApiErrors] ||
+        CustomApiErrors.DEFAULT_VALIDATION_ERROR
     );
-
     const errorMessages = error.details
       ?.map((details) => details.message)
       .join(",");
-
     next(new ApiError(httpStatus.BAD_REQUEST, errorMessages, validationErrors));
   }
   Object.assign(req, value);

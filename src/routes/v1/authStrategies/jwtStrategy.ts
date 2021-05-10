@@ -4,7 +4,6 @@ import {
   VerifyCallback,
 } from "passport-jwt";
 import config from "../../../config/config";
-import { User } from "../../../entity/User";
 import { tokenTypes } from "../../../types/tokens";
 
 const jwtOptions = {
@@ -17,11 +16,7 @@ const jwtVerify: VerifyCallback = async (payload, done) => {
       throw new Error("Invalid token type");
     }
 
-    const user = await User.findOne({ id: payload.sub });
-    if (!user) {
-      return done(null, false);
-    }
-    done(null, user);
+    done(null, { id: payload.sub });
   } catch (error) {
     done(error, false);
   }

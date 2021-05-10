@@ -1,25 +1,51 @@
 import Joi from "joi";
 import { custom } from "./custom.validation";
-export const RegisterSchema = Joi.object()
+export const isJoiToTypescriptGenerator = !process.env.NODE_ENV;
+function JoyToTypescriptAdapter(
+  realSchema: Joi.Schema,
+  interfaceSchema: Joi.Schema
+): Joi.Schema {
+  if (isJoiToTypescriptGenerator) {
+    return interfaceSchema;
+  } else {
+    return realSchema;
+  }
+}
+export const SignUp = Joi.object()
   .keys({
-    body: Joi.object().keys({
-      email: Joi.string().required().email(),
-      password: custom.customPassword(),
-      name: Joi.string().required(),
-    }),
+    body: Joi.object()
+      .keys({
+        email: Joi.string().required().email(),
+        password: JoyToTypescriptAdapter(
+          custom.customPassword(),
+          Joi.string().required()
+        ),
+        firstName: Joi.string().max(100).min(1).required(),
+        lastName: Joi.string().max(100),
+        googleId: Joi.string(),
+        phone: Joi.string(),
+      })
+      .required(),
   })
-  .label("Register");
+  .label("SignUpBody");
 
-export const LoginSchema = Joi.object({
+export const Login = Joi.object({
   body: Joi.object({
-    email: Joi.string()
-      .required()
-      .email()
-      .messages({ "number.base": "abarajame la  ba;era" }),
-    password: custom.customPassword(),
+    email: Joi.string().required().email(),
+    password: JoyToTypescriptAdapter(
+      custom.customPassword(),
+      Joi.string().required()
+    ),
   }).required(),
-}).label("Login");
+}).label("LoginBody");
 
+export const refreshToken = Joi.object({
+  body: Joi.object()
+    .keys({
+      refreshToken: Joi.string().required(),
+    })
+    .required(),
+}).label("RefreshTokenBody");
 // export const logout = {
 //   body: Joi.object().keys({
 //     refreshToken: Joi.string().required(),
@@ -44,11 +70,5 @@ export const LoginSchema = Joi.object({
 //   }),
 //   body: Joi.object().keys({
 //     password: Joi.string().required().custom(password),
-//   }),
-// });
-
-// export const verifyEmail = Joi.object({
-//   query: Joi.object().keys({
-//     token: Joi.string().required(),
 //   }),
 // });

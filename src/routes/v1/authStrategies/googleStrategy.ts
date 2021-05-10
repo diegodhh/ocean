@@ -19,7 +19,7 @@ const googleStrategy: Strategy = new GoogleStrategy(
   },
 
   async function (
-    request: Request,
+    _request: Request,
     _accessToken: string,
     _refreshToken: string,
     profile: GoogleProfileSchema,

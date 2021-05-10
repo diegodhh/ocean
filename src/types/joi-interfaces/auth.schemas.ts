@@ -3,17 +3,26 @@
  * Do not modify this file manually
  */
 
-export interface Login {
+export interface LoginBody {
   body: {
     email: string;
     password: string;
   };
 }
 
-export interface Register {
-  body?: {
+export interface RefreshTokenBody {
+  body: {
+    refreshToken: string;
+  };
+}
+
+export interface SignUpBody {
+  body: {
     email: string;
-    name: string;
+    firstName: string;
+    googleId?: string;
+    lastName?: string;
     password: string;
+    phone?: string;
   };
 }

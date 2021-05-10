@@ -2,13 +2,20 @@ require("dotenv").config();
 
 import express from "express";
 import httpStatus from "http-status";
+import redis from "redis";
 import "reflect-metadata";
 import { errorConverter, errorHandler } from "./middleware/errors";
 import v1Routes from "./routes/v1";
 import { APIvertion } from "./types/api";
 import ApiError from "./util/ApiError";
+export const client = redis.createClient();
 const app = express();
 app.use(express.json());
+app.use(function (req, res, next) {
+  (req as any).redis = client;
+  next();
+});
+
 app.get("/", (_req, res) => {
   res.send("Hello World!!!!!!!!!!");
 });

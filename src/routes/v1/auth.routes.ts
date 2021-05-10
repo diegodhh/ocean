@@ -1,24 +1,33 @@
 import express from "express";
-import httpStatus from "http-status";
 import jwt from "jsonwebtoken";
 import config from "../../config/config";
+import {
+  loginController,
+  refreshTokenController,
+  signUpController,
+} from "../../controllers/auth";
 import { User } from "../../entity/User";
-import { LoginSchema } from "../../joi/schemas/auth.schemas";
+import * as authSchema from "../../joi/schemas/auth.schemas";
 import auth from "../../middleware/auth";
+import authLimiter from "../../middleware/rateLimiter";
 import validate from "../../middleware/validate";
 import { APIvertion } from "../../types/api";
-import { AuthRoutes, V1Routes } from "../../types/api/v1";
-import ApiError from "../../util/ApiError";
-import { loginController } from "./../../controllers/LoginController";
-import {} from "./../../joi/schemas/auth.schemas";
+import { V1Routes } from "../../types/api/v1";
+import { isJoiToTypescriptGenerator } from "./../../joi/schemas/auth.schemas";
+import { AuthRoutes } from "./../../types/api/v1";
 import passport from "./passport";
-
 export type LoginSuccess = {
   accessToken: string;
   refreshToken: string;
 };
+
 const router = express.Router();
 const routerWrapper = express.Router();
+if (isJoiToTypescriptGenerator) {
+  throw new Error("custom validator are failing");
+}
+router.use(authLimiter);
+
 router.get("/google/success", (req, res) => {
   return res.redirect(200, "msrm42app://msrm42app.io?id=" + 1234);
 });
@@ -60,12 +69,16 @@ router.get("/logout", function (req, res) {
 router.get(`${AuthRoutes.ME}`, auth, (req, res) => {
   res.send(req.user);
 });
-router.post(`${AuthRoutes.LOGIN}`, validate(LoginSchema), loginController);
+router.post(
+  `${AuthRoutes.REFRESH_TOKEN}`,
+  validate(authSchema.refreshToken),
+  refreshTokenController
+);
+router.post(`${AuthRoutes.LOGIN}`, validate(authSchema.Login), loginController);
 
-router.post(`${AuthRoutes.SIGNUP}`, (req, res) => {
-  throw new ApiError(
-    httpStatus.BAD_REQUEST,
-    "the password or email is invalid"
-  );
-});
+router.post(
+  `${AuthRoutes.SIGNUP}`,
+  validate(authSchema.SignUp),
+  signUpController
+);
 export default routerWrapper.use(V1Routes.AUTH, router);

@@ -1,7 +1,7 @@
 import jwt, { Secret, SignOptions } from "jsonwebtoken";
 import moment, { Moment } from "moment-mini";
 import config from "../config/config";
-import { JWTPayload } from "../types/JWTPayload";
+import { JWTPayload } from "./../types/JWTPayload";
 import { tokenTypes } from "./../types/tokens";
 //asyn sign
 export function encodeJWT(
@@ -14,6 +14,18 @@ export function encodeJWT(
       if (err) return reject(err);
       if (!token) return new Error("encodeJWT fail");
       else return resolve(token);
+    });
+  });
+}
+export function decodeJWT(
+  token: string,
+  secretOrPrivateKey: Secret
+): Promise<JWTPayload> {
+  return new Promise((resolve, reject) => {
+    jwt.verify(token, secretOrPrivateKey, (err, payload) => {
+      if (err) return reject(err);
+      if (!payload) return new Error("encodeJWT fail");
+      else return resolve(payload as JWTPayload);
     });
   });
 }
@@ -33,6 +45,17 @@ export const generateToken = (
   return encodeJWT(payload, secret);
 };
 
+export const verifyToken = async (
+  token: string,
+  type: tokenTypes
+): Promise<[JWTPayload, null] | [null, Error]> => {
+  try {
+    const payload: JWTPayload = await decodeJWT(token, config.jwt.secret);
+    return [payload, null];
+  } catch (err) {
+    return [null, err];
+  }
+};
 /**
  * Save a token
  * @param {string} token
