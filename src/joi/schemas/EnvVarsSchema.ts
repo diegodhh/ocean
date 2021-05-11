@@ -7,6 +7,13 @@ export const EnvVarsSchema = Joi.object()
       .valid(Env.PRODUCTION, Env.DEVELOPMENT, Env.TEST)
       .required(),
     PORT: Joi.number().default(3000),
+    REDIS_URL: Joi.when("NODE_ENV", {
+      is: Env.PRODUCTION,
+      then: Joi.string()
+        .required()
+        .description("DATABASE_URL is undefined and requeried on production"),
+      otherwise: Joi.string(),
+    }),
     DATABASE_URL: Joi.when("NODE_ENV", {
       is: Env.PRODUCTION,
       then: Joi.string()

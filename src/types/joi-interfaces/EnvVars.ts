@@ -35,6 +35,7 @@ export interface EnvVars {
   JWT_VERIFY_EMAIL_EXPIRATION_MINUTES?: number;
   NODE_ENV: 'production' | 'development' | 'test';
   PORT?: number;
+  REDIS_URL?: any;
   /**
    * Unknown Property
    */

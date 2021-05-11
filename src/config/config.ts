@@ -26,6 +26,7 @@ export default {
     type: "postgres" as "postgres",
     databaseURL: envVars.DATABASE_URL,
   },
+  REDIS_URL: envVars.REDIS_URL,
   jwt: {
     secret: envVars.JWT_SECRET,
     [tokenTypes.ACCESS]: <ITokenTypeExpiration>{
