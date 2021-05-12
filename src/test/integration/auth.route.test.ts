@@ -16,10 +16,15 @@ import { User } from "./../../entity/User";
 import "./../../jestUtils/customMatchers";
 import { SessionUser } from "./../../redis/SessionUser";
 import { LoginSuccess } from "./../../routes/v1/auth.routes";
-import { generateToken } from "./../../services/token.service";
+import { generateToken, verifyToken } from "./../../services/token.service";
 import { RefreshTokenBody } from "./../../types/joi-interfaces/auth.schemas";
 import { TestingConnection } from "./ConnectionInstance";
 describe("auth rout", () => {
+  let conn;
+
+  beforeAll(async () => {
+    conn = await TestingConnection.Instance.conn;
+  });
   test("It should response the GET method", async (done) => {
     request(await app)
       .get("/")
@@ -33,6 +38,11 @@ describe("auth rout", () => {
 });
 
 describe("test google auth", () => {
+  let conn;
+
+  beforeAll(async () => {
+    conn = await TestingConnection.Instance.conn;
+  });
   test("It should redirect to google auth2", async (done) => {
     request(await app)
       .get("/v1/auth/google")
@@ -44,7 +54,7 @@ describe("test google auth", () => {
         done();
       });
   });
-  test("It should redirect to something", async (done) => {
+  test("It should be found", async (done) => {
     request(await app)
       .get("/v1/auth/google/callback")
       .then((response) => {
@@ -53,6 +63,40 @@ describe("test google auth", () => {
       });
   });
 
+  test("It should return a valid accest token whitelisted on redis", async (done) => {
+    const userData = {
+      firstName: faker.name.firstName(),
+      email: faker.internet.email().toLowerCase(),
+      lastName: faker.name.lastName(),
+      phone: faker.phone.phoneNumber(),
+    };
+
+    const user = await User.create(userData).save();
+    const token = await generateToken(user.id, tokenTypes.ACCESS);
+    request(await app)
+      .get("/v1/auth/google/callback/test")
+      .set("authorization", `Bearer ${token}`)
+      .then(async (response) => {
+        expect(response.status).toBe(302); //found
+        const redirectURL = new URL(response.header.location);
+        const refreshToken = await redirectURL.searchParams.get("refreshToken");
+        expect(refreshToken).toBeDefined();
+        const [payload, err] = await verifyToken(
+          refreshToken!,
+          tokenTypes.REFRESH
+        );
+        expect(err == null).toBe(true); // null o undefined
+        expect(payload?.type).toBe(tokenTypes.REFRESH);
+
+        const sessionUser = new SessionUser(client, user.id);
+        const sessionData = await sessionUser.values;
+        expect(sessionData?.refreshToken).toBe(refreshToken);
+
+        sessionUser.client.del(user.id);
+        await User.delete({ id: user.id });
+        done();
+      });
+  });
   test("It should return 200 when failed", async (done) => {
     request(await app)
       .get("/v1/auth/google/failure")

@@ -1,5 +1,4 @@
 import express from "express";
-import jwt from "jsonwebtoken";
 import config from "../../config/config";
 import {
   loginController,
@@ -13,8 +12,13 @@ import authLimiter from "../../middleware/rateLimiter";
 import validate from "../../middleware/validate";
 import { APIvertion } from "../../types/api";
 import { V1Routes } from "../../types/api/v1";
+import { Env } from "../../types/Env";
+import { tokenTypes } from "../../types/tokens";
 import { isJoiToTypescriptGenerator } from "./../../joi/schemas/auth.schemas";
+import { SessionUser } from "./../../redis/SessionUser";
+import { generateToken } from "./../../services/token.service";
 import { AuthRoutes } from "./../../types/api/v1";
+import { MiddlewareFn } from "./../../types/MiddlewareFn";
 import passport from "./passport";
 export type LoginSuccess = {
   accessToken: string;
@@ -43,6 +47,19 @@ router.get(
   })
 );
 
+const googleToJWT: MiddlewareFn = async (req, res) => {
+  const { user } = <{ user: User }>(<unknown>req) || {};
+  const refreshToken = user
+    ? await generateToken(user.id, tokenTypes.REFRESH)
+    : null;
+  if (!refreshToken) {
+    throw new Error("no token something bad happen");
+  }
+  await new SessionUser(req.redis!, user.id).set({ refreshToken });
+  res.redirect(
+    `msrm42app://msrm42app.io?refreshToken=${refreshToken}&id=${user?.id}`
+  );
+};
 router.get(
   "/google/callback",
 
@@ -51,17 +68,12 @@ router.get(
     session: false,
   }),
 
-  (req, res) => {
-    const { user } = <{ user: User }>(<unknown>req) || {};
-    const token = user
-      ? jwt.sign(JSON.parse(JSON.stringify(user)), config.jwt.secret)
-      : null;
-    res.cookie("token", token);
-    res.cookie("test1", "test");
-    res.redirect(`msrm42app://msrm42app.io?token=${token}&id=${user?.id}`);
-  }
+  googleToJWT
 );
-
+//only for test
+if (config.env === Env.TEST) {
+  router.get("/google/callback/test", auth, googleToJWT);
+}
 router.get("/logout", function (req, res) {
   req.logout();
   res.send("logout");
