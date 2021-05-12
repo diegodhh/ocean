@@ -15,7 +15,7 @@ async function main(Application: Express): Promise<Application> {
     console.log(err);
   }
 
-  if (config.env === Env.TEST) {
+  if (config.env !== Env.TEST) {
     await app.listen(config.port);
     conn = await createConnection(ormconfig);
   }

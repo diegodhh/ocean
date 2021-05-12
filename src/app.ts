@@ -20,7 +20,7 @@ app.use(function (req, res, next) {
 });
 
 app.get("/", (_req, res) => {
-  res.send("Hello World!!!!!!!!!!");
+  res.send("Hello World!!!!!!!!!!").end();
 });
 
 app.get("/myapp", (_req, res) => {
